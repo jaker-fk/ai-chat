@@ -1,0 +1,13 @@
+---
+description: Python API 接口约定
+globs: **/api/**/*.py,**/views/**/*.py,**/routers/**/*.py
+alwaysApply: false
+---
+
+# API 约定
+
+- 路由、Schema、Service、Repository 分层，不在路由里写业务逻辑
+- 请求/响应用 Pydantic（或序列化器）校验；字段加中文 `description`
+- 统一响应结构：`{ code, msg, data }`
+- 鉴权、权限校验放中间件/依赖注入，不散落在每个接口
+- 分页参数统一：`page` / `page_size`

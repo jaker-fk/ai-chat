@@ -1,0 +1,12 @@
+---
+description: Python 测试规范
+globs: **/tests/**/*.py,**/test_*.py
+alwaysApply: false
+---
+
+# 测试规范
+
+- 使用 pytest；命名 `test_*.py` / `test_*`
+- 单测不依赖真实外部服务，用 mock/fixture
+- 覆盖：正常路径、边界、异常路径
+- fixture 放 `conftest.py`，避免重复造数据

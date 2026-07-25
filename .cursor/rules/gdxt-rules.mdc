@@ -1,0 +1,9 @@
+---
+description:前后端开发框架
+globs:["**/*.py"]
+alwaysApply: false
+---
+# 框架约定
+
+-前端采用vue框架,页面使用多个vue文件,不要一个vue里写太多页面
+-后端采用Fastapi框架,项目功能模块分层

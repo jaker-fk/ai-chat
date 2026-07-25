@@ -1,0 +1,14 @@
+---
+description: Python 编码规范与风格
+globs: **/*.py
+alwaysApply: false
+---
+
+# Python 规范
+
+- 使用 Python 3.10+ 语法；优先类型注解
+- 遵循 PEP 8；命名：函数/变量 snake_case，类 PascalCase，常量 UPPER_SNAKE
+- 优先标准库与项目已有依赖，不随意加新包
+- 函数/类/关键字段要有简短中文备注（用途、入参、返回值）
+- 禁止裸 `except:`；捕获具体异常并记录日志
+- 不用 `print` 做正式日志，统一用 `logging`

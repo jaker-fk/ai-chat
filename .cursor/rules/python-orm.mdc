@@ -1,0 +1,13 @@
+---
+description: Python ORM 与数据库规范
+globs: **/models/**/*.py,**/dao/**/*.py,**/repository/**/*.py
+alwaysApply: false
+---
+
+# 数据库规范
+
+- Model 字段必须有注释（中文说明用途）
+- 禁止循环里逐条查库（N+1）；用 join / prefetch / bulk
+- 写操作要事务；失败要回滚
+- 软删除优先于物理删除（若项目已有该约定）
+- 迁移文件只增不改已上线迁移
