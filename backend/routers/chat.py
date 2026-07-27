@@ -36,11 +36,7 @@ def create_session(payload: ChatSessionCreateSchema, authorization: str | None =
     return SuccessResponse[ChatSessionResponseSchema](data=ChatSessionResponseSchema.model_validate(session))
 
 
-@router.delete("/sessions/{session_id}", response_model=SuccessResponse[bool], tags=["删除会话"])
-def delete_session(session_id: int, authorization: str | None = Header(default=None), db: Session = Depends(get_db)):
-    user = get_current_user_from_token(db, authorization)
-    delete_chat_session(db, user, session_id)
-    return SuccessResponse[bool](data=True)
+
 
 
 @router.delete("/sessions/{session_id}", response_model=SuccessResponse[bool], tags=["删除会话"])

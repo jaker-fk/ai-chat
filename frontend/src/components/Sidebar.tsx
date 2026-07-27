@@ -48,14 +48,10 @@ export function Sidebar({
               <strong>{session.title}</strong>
               <span>{new Date(session.updated_time).toLocaleString()}</span>
             </button>
-            <button
-              className="session-delete-btn"
-              type="button"
-              onClick={() => onDeleteSession(session)}
-              disabled={deletingSessionId === session.id}
-              aria-label={`删除会话 ${session.title}`}
-              title="删除会话"
-            >
+            <button className="session-delete-btn" type="button" onClick={(event) => {
+              event.stopPropagation();
+              onDeleteSession(session);
+            }} aria-label={`删除会话 ${session.title}`} title="删除会话">
               {deletingSessionId === session.id ? '…' : '×'}
             </button>
           </div>

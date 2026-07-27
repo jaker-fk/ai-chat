@@ -62,10 +62,7 @@ def list_documents(db: Session, user: User) -> list[KnowledgeDocument]:
 
 
 def answer_question(db: Session, user: User, question: str, limit: int = 4) -> dict[str, object]:
-    chunks = list(_load_candidate_chunks(db, user))
-    scored = sorted((RetrievedChunk(chunk=chunk, score=_similarity(question, chunk.content)) for chunk in chunks), key=lambda item: item.score, reverse=True)
-    top_chunks = _select_relevant_chunks(scored, limit=limit)
-    context = "\n\n".join(f"[{index + 1}] {item.chunk.content}" for index, item in enumerate(top_chunks))
+    context, top_chunks = retrieve_context_for_question(db, user, question, limit=limit)
     if not context:
         return {"answer": "当前知识库里没有找到足够相关的内容，请先上传文档或换个问法。", "sources": []}
 
@@ -73,6 +70,16 @@ def answer_question(db: Session, user: User, question: str, limit: int = 4) -> d
         "answer": _build_answer(question, context),
         "sources": [{"document_id": item.chunk.document_id, "chunk_id": item.chunk.id, "score": round(item.score, 4), "content": item.chunk.content} for item in top_chunks],
     }
+
+
+def retrieve_context_for_question(db: Session, user: User, question: str, limit: int = 4) -> tuple[str, list[RetrievedChunk]]:
+    chunks = list(_load_candidate_chunks(db, user))
+    if not chunks:
+        return "", []
+    scored = sorted((RetrievedChunk(chunk=chunk, score=_similarity(question, chunk.content)) for chunk in chunks), key=lambda item: item.score, reverse=True)
+    top_chunks = _select_relevant_chunks(scored, limit=limit)
+    context = "\n\n".join(f"[{index + 1}] {item.chunk.content}" for index, item in enumerate(top_chunks))
+    return context, top_chunks
 
 
 def _load_candidate_chunks(db: Session, user: User) -> Iterable[KnowledgeChunk]:

@@ -11,6 +11,7 @@ from backend.models.chat_message import ChatMessage
 from backend.models.chat_session import ChatSession
 from backend.models.user import User
 from backend.schemas.chat import ChatMessageCreateSchema, ChatSessionCreateSchema
+from backend.services.knowledge_service import retrieve_context_for_question
 from backend.services.llm_service import stream_llm_reply
 
 
@@ -54,6 +55,21 @@ def delete_chat_session(db: Session, user: User, session_id: int) -> None:
     db.commit()
 
 
+def _build_chat_history_with_knowledge(db: Session, user: User, session: ChatSession, question: str) -> list[dict[str, str]]:
+    history = [{"role": msg.role, "content": msg.content} for msg in list_messages(db, session)]
+    context, _ = retrieve_context_for_question(db, user, question, limit=4)
+    if not context:
+        return history
+
+    system_prompt = (
+        "你是一个严谨的 AI 助手。当前用户可能在询问已上传知识库中的内容。"
+        "请优先参考下面的知识库片段回答；如果片段不足以回答，请明确说明依据不足，"
+        "然后再基于通用知识补充，并区分哪些内容来自知识库。\n\n"
+        f"知识库片段：\n{context}"
+    )
+    return [{"role": "system", "content": system_prompt}, *history]
+
+
 def send_message_and_stream(
     db: Session,
     user: User,
@@ -65,7 +81,7 @@ def send_message_and_stream(
     db.add(user_message)
     db.commit()
 
-    history = [{"role": msg.role, "content": msg.content} for msg in list_messages(db, session)]
+    history = _build_chat_history_with_knowledge(db, user, session, payload.content)
     assistant_text = ""
     for chunk in stream_llm_reply(history):
         assistant_text += chunk
