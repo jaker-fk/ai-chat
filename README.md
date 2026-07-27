@@ -1,5 +1,5 @@
 # AI对话应用开发文档
-![DEMO](assets/demo.png)
+![DEMO](assets/image.png)
 
 ## 1. 项目概述
 
