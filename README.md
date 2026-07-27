@@ -1,5 +1,5 @@
 # AI对话应用开发文档
-![Uploading image.png…]()
+assets\image.png
 
 ## 1. 项目概述
 
