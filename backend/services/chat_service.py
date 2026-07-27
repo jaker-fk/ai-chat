@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import AsyncIterator
+from typing import Iterator
 
 from fastapi import HTTPException, status
 from sqlalchemy import select
@@ -46,23 +46,28 @@ def list_messages(db: Session, session: ChatSession) -> list[ChatMessage]:
     return list(db.scalars(stmt).all())
 
 
-async def send_message_and_stream(
+def delete_chat_session(db: Session, user: User, session_id: int) -> None:
+    session = get_chat_session(db, user, session_id)
+    for message in list_messages(db, session):
+        db.delete(message)
+    db.delete(session)
+    db.commit()
+
+
+def send_message_and_stream(
     db: Session,
     user: User,
     session_id: int,
     payload: ChatMessageCreateSchema,
-) -> AsyncIterator[str]:
+) -> Iterator[str]:
     session = get_chat_session(db, user, session_id)
     user_message = ChatMessage(session_id=session.id, role="user", content=payload.content)
     db.add(user_message)
     db.commit()
 
-    history = [
-        {"role": msg.role, "content": msg.content}
-        for msg in list_messages(db, session)
-    ]
+    history = [{"role": msg.role, "content": msg.content} for msg in list_messages(db, session)]
     assistant_text = ""
-    async for chunk in stream_llm_reply(history):
+    for chunk in stream_llm_reply(history):
         assistant_text += chunk
         yield chunk
 

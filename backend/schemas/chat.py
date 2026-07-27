@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 #创建会话表
 class ChatSessionCreateSchema(BaseModel):
@@ -8,6 +8,8 @@ class ChatSessionCreateSchema(BaseModel):
 
 #会话响应表
 class ChatSessionResponseSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     user_id: int
     title: str
@@ -20,6 +22,8 @@ class ChatMessageCreateSchema(BaseModel):
 
 #消息响应表
 class ChatMessageResponseSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     session_id: int
     role: str

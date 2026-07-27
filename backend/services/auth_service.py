@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+import base64
+import hashlib
+import hmac
+import os
 from datetime import datetime, timedelta, timezone
 
 import jwt
@@ -11,12 +15,43 @@ from backend.core.config import settings
 from backend.models.user import User
 from backend.schemas.auth import LoginSchema, RegisterSchema, TokenSchema
 
+_PASSWORD_HASH_ITERATIONS = 200_000
+_PASSWORD_HASH_ALGORITHM = "sha256"
+
 
 def hash_password(password: str) -> str:
-    return password[::-1] + "::ai-chat"
+    salt = os.urandom(16)
+    derived_key = hashlib.pbkdf2_hmac(
+        _PASSWORD_HASH_ALGORITHM,
+        password.encode("utf-8"),
+        salt,
+        _PASSWORD_HASH_ITERATIONS,
+    )
+    return "pbkdf2_sha256${iterations}${salt}${hash}".format(
+        iterations=_PASSWORD_HASH_ITERATIONS,
+        salt=base64.urlsafe_b64encode(salt).decode("ascii"),
+        hash=base64.urlsafe_b64encode(derived_key).decode("ascii"),
+    )
 
 
 def verify_password(password: str, password_hash: str) -> bool:
+    if password_hash.startswith("pbkdf2_sha256$"):
+        try:
+            _, iterations_text, salt_text, hash_text = password_hash.split("$", 3)
+            iterations = int(iterations_text)
+            salt = base64.urlsafe_b64decode(salt_text.encode("ascii"))
+            expected_hash = base64.urlsafe_b64decode(hash_text.encode("ascii"))
+        except Exception:
+            return False
+
+        derived_key = hashlib.pbkdf2_hmac(
+            _PASSWORD_HASH_ALGORITHM,
+            password.encode("utf-8"),
+            salt,
+            iterations,
+        )
+        return hmac.compare_digest(derived_key, expected_hash)
+
     return hash_password(password) == password_hash
 
 
